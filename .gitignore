@@ -1,0 +1,4 @@
+*.pub
+*key
+.terraform
+*.tfstate
