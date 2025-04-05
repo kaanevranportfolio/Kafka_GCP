@@ -1,12 +1,15 @@
 [Unit]
-Requires=network.target
+Description=Apache ZooKeeper Server
 After=network.target
 
 [Service]
 Type=simple
-User=kafka
-ExecStart=/opt/kafka/bin/zookeeper-server-start.sh /opt/kafka/config/zookeeper.properties
-ExecStop=/opt/kafka/bin/zookeeper-server-stop.sh
+User={{ kafka_user }}
+ExecStart={{ kafka_install_dir }}/bin/zookeeper-server-start.sh {{ kafka_install_dir }}/config/zookeeper.properties
+ExecStop={{ kafka_install_dir }}/bin/zookeeper-server-stop.sh
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65536
 
 [Install]
 WantedBy=multi-user.target

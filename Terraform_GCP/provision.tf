@@ -46,7 +46,8 @@ resource "null_resource" "install_ansible" {
 
   provisioner "remote-exec" {
     inline = [
-      "sudo yum update -y",
+      #"sudo yum update -y", takes too long for the first run
+      "sudo yum update -y ansible",
       "sudo yum install epel-release -y",
       "sudo yum install -y ansible | sudo tee /var/log/ansible_install.log"
     ]

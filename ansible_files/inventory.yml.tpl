@@ -8,4 +8,4 @@ all:
         kafka:
           ansible_host: ${kafka_server_private_ip}
           ansible_user: kaanevran
-          ansible_ssh_private_key_file: ./keys/kfk_key
+          ansible_ssh_private_key_file: ./keys/kfk-key
