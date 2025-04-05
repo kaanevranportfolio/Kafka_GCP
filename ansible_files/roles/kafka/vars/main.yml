@@ -1,0 +1,4 @@
+kafka_version: "3.9.0"  # Replace with your desired Kafka version
+scala_version: "2.13"   # Replace with the corresponding Scala version
+kafka_install_dir: "/opt/kafka"  # Directory where Kafka will be installed
+kafka_checksum: "5324C1F44D4C84EA469712C2CC3D2D15545C3716EDBB5353722DF9C661FCC78B031FCF07D1C4F0309C5FDB32686665DFB0CFFE55210CD3A1FE2A370538CB4E6D"

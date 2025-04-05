@@ -34,7 +34,7 @@ resource "null_resource" "provision_control_server" {
 
 
 resource "null_resource" "install_ansible" {
-    
+
   depends_on = [null_resource.provision_control_server]
 
   connection {
@@ -48,7 +48,7 @@ resource "null_resource" "install_ansible" {
     inline = [
       "sudo yum update -y",
       "sudo yum install epel-release -y",
-      "sudo yum install -y ansible > /var/log/ansible_install.log 2>&1"
+      "sudo yum install -y ansible | sudo tee /var/log/ansible_install.log"
     ]
   }
 }
