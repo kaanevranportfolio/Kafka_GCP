@@ -12,13 +12,13 @@ resource "google_compute_firewall" "allow_ssh" {
   target_tags = ["ssh-access"]
 }
 
-resource "google_compute_firewall" "allow_kafka" {
-  name    = "allow-kafka"
+resource "google_compute_firewall" "allow_kafka_zookeeper" {
+  name    = "allow-kafka-zookeeper"
   network = google_compute_network.vpc_network.name
 
   allow {
     protocol = "tcp"
-    ports    = ["9092"]
+    ports    = ["9092", "2181"]
   }
 
   source_ranges = ["172.20.0.0/16"]
