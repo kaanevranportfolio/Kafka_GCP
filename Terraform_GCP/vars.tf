@@ -33,3 +33,4 @@ variable "project_id" {
   type    = string
   default = "api-project-269968866265" # Replace with your GCP project ID
 }
+

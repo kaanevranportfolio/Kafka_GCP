@@ -20,6 +20,57 @@ resource "google_compute_instance" "kafka_instance" {
   }
 }
 
+resource "google_compute_instance" "stream_producer_instance" {
+  name         = "stream-producer-instance"
+  machine_type = var.instance_type
+  zone         = var.zone
+  tags         = ["ssh-access"]
+
+  boot_disk {
+    initialize_params {
+      image = var.instance_image["ubuntu"]
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.private_subnet.id
+  }
+
+  metadata = {
+    ssh-keys = "kaanevran:${file("../keys/strm-key.pub")}"
+  }
+  /*
+  metadata_startup_script = <<-EOT
+    #!/bin/bash
+    echo "export NEWS_API_KEY=${local.secret_key}" >> /etc/profile.d/env_vars.sh
+    source /etc/profile.d/env_vars.sh
+    chmod 600 /etc/profile.d/env_vars.sh
+  EOT
+*/
+}
+
+resource "google_compute_instance" "consumer_instance" {
+  name         = "consumer-instance"
+  machine_type = var.instance_type
+  zone         = var.zone
+  tags         = ["ssh-access"]
+
+  boot_disk {
+    initialize_params {
+      image = var.instance_image["ubuntu"]
+    }
+  }
+
+  network_interface {
+    network    = google_compute_network.vpc_network.id
+    subnetwork = google_compute_subnetwork.private_subnet.id
+  }
+
+  metadata = {
+    ssh-keys = "kaanevran:${file("../keys/cnsmr-key.pub")}"
+  }
+}
 
 
 resource "google_compute_instance" "control_instance" {
@@ -77,4 +128,3 @@ resource "google_compute_instance" "control_instance" {
   EOF
   */
 }
-
