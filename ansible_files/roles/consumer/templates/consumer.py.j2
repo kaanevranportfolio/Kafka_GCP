@@ -1,0 +1,58 @@
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import from_json, col
+from pyspark.sql.types import *
+
+spark = SparkSession.builder \
+    .appName("NewsStreamConsumer") \
+    .getOrCreate()
+
+schema = StructType([
+    StructField("source", StructType([
+        StructField("id", StringType()),
+        StructField("name", StringType())
+    ])),
+    StructField("author", StringType()),
+    StructField("title", StringType()),
+    StructField("description", StringType()),
+    StructField("publishedAt", StringType())
+])
+
+df = spark.readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", "{{ kafka_broker }}") \
+    .option("subscribe", "{{ kafka_topic }}") \
+    .load()
+
+json_df = df.selectExpr("CAST(value AS STRING) as json") \
+    .select(from_json(col("json"), schema).alias("data")) \
+    .select("data.*")
+
+'''
+query = json_df.writeStream \
+    .format("console") \
+    .outputMode("append") \
+    .start()
+
+query.awaitTermination()
+'''
+
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
+import uuid
+
+# Define a UDF to generate UUIDs
+generate_uuid = udf(lambda: str(uuid.uuid4()), StringType())
+
+# Apply the UDF to your DataFrame
+json_df = json_df.withColumn("uuid", generate_uuid())
+
+
+query = json_df.writeStream \
+    .format("bigquery") \
+    .option("checkpointLocation", "/tmp/bq_checkpoint/") \  # Required for streaming
+    .option("temporaryGcsBucket", "{{ temp_bucket }}") \
+    .option("table", "{{ bq_dataset_id }}.{{ table_name }}") \
+    .option("createTable", "true") \
+    .outputMode("append") \
+    .start()
+

@@ -1,0 +1,104 @@
+---
+- name: Update apt package list
+  apt:
+    update_cache: yes
+
+- name: Ensure Java is installed
+  apt:
+    name: openjdk-11-jdk
+    state: present
+
+- name: Create a spark user
+  user:
+    name: "{{ spark_user }}"
+    shell: /bin/bash
+    create_home: yes
+
+- name: Download Spark
+  get_url:
+    url: "https://downloads.apache.org/spark/{{ spark_version }}/{{ spark_package }}.tgz"
+    dest: "/tmp/{{ spark_package }}.tgz"
+
+- name: Extract Spark
+  unarchive:
+    src: "/tmp/{{ spark_package }}.tgz"
+    dest: /opt/
+    remote_src: yes
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+
+- name: Create a symbolic link to Spark
+  file:
+    src: "/opt/{{ spark_package }}"
+    dest: "{{ spark_home }}"
+    state: link
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+
+- name: Set SPARK_HOME environment variable
+  lineinfile:
+    path: /etc/profile.d/spark.sh
+    line: 'export SPARK_HOME={{ spark_home }}'
+    create: yes
+
+- name: Add Spark to PATH
+  lineinfile:
+    path: /etc/profile.d/spark.sh
+    line: 'export PATH=$PATH:{{ spark_home }}/bin:{{ spark_home }}/sbin'
+    create: yes
+
+- name: Source Spark environment variables
+  shell: source /etc/profile.d/spark.sh
+  ignore_errors: yes
+
+- name: Ensure Python 3 and pip are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3
+    - python3-pip
+
+- name: Copy requirements.txt to the target machine
+  copy:
+    src: requirements.txt
+    dest: /home/{{ spark_user }}/requirements.txt
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+
+- name: Install Python packages from requirements.txt
+  pip:
+    requirements: /home/{{ spark_user }}/requirements.txt
+    executable: pip3
+
+- name: Install Google Cloud BigQuery Connector for Spark
+  get_url:
+    url: https://storage.googleapis.com/spark-lib/bigquery/spark-bigquery-latest.jar
+    dest: "{{ spark_home }}/jars/spark-bigquery-latest.jar"
+    owner: "{{ spark_user }}"
+    group: "{{ spark_group }}"
+
+- name: Ensure Kafka client libraries are installed
+  apt:
+    name: librdkafka-dev
+    state: present
+
+- name: Deploy PySpark service file
+  template:
+    src: pyspark-news-stream.service.j2
+    dest: /etc/systemd/system/pyspark-news-stream.service
+  notify:
+    - Reload systemd
+
+- name: Enable and start PySpark service
+  systemd:
+    name: pyspark-news-stream
+    enabled: yes
+    state: started
+
+- name: Ensure cron job to restart PySpark service
+  cron:
+    name: "Restart PySpark News Stream Service"
+    user: root
+    job: "/bin/systemctl restart pyspark-news-stream"
+    minute: "*/30"  # Adjust the interval as needed

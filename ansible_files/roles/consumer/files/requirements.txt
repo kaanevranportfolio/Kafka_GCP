@@ -1,0 +1,4 @@
+pyspark==3.3.1  # Ensure this matches your Spark version
+google-cloud-bigquery==3.4.0  # For BigQuery client
+google-cloud-storage==2.5.0  # For GCS interactions
+kafka-python==2.0.2  # For Kafka integration

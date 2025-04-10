@@ -1,0 +1,21 @@
+[Unit]
+Description=PySpark News Stream Consumer
+After=network.target
+
+[Service]
+Type=simple
+User={{ spark_user }}
+Group={{ spark_group }}
+Environment="SPARK_HOME={{ spark_home }}"
+Environment="PYSPARK_PYTHON=python3"
+Environment="PYSPARK_DRIVER_PYTHON=python3"
+Environment="KAFKA_BROKER={{ kafka_broker }}"
+Environment="KAFKA_TOPIC={{ kafka_topic }}"
+Environment="TEMP_BUCKET={{ temp_bucket }}"
+Environment="BQ_DATASET_ID={{ bq_dataset_id }}"
+Environment="TABLE_NAME={{ table_name }}"
+ExecStart={{ spark_home }}/bin/spark-submit /path/to/your_script.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

@@ -97,3 +97,7 @@
   fail:
     msg: "Kafka service failed to start!"
   when: kafka_service.status.ActiveState != "active"
+
+- name: Create Kafka topic 'news-stream'
+  command: "{{ kafka_install_dir }}/bin/kafka-topics.sh --create --topic news-stream --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1 --if-not-exists"
+

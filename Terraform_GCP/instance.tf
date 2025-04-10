@@ -51,7 +51,13 @@ resource "google_compute_instance" "stream_producer_instance" {
 }
 
 resource "google_compute_instance" "consumer_instance" {
-  name         = "consumer-instance"
+  name = "bq-consumer-instance"
+
+  service_account {
+    email  = google_service_account.bq_service_account.email
+    scopes = ["cloud-platform"]
+  }
+
   machine_type = var.instance_type
   zone         = var.zone
   tags         = ["ssh-access"]

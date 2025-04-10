@@ -4,4 +4,7 @@
 *.tfstate
 *.backup
 *.tfstate.* 
-terraform.tfstate.backup 
+.env
+newsenv
+
+

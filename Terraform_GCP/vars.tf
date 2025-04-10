@@ -34,3 +34,8 @@ variable "project_id" {
   default = "api-project-269968866265" # Replace with your GCP project ID
 }
 
+variable "temp_bucket_name" {
+  type    = string
+  default = "stream-bucket-263968866565" # Replace with your GCP bucket name
+}
+

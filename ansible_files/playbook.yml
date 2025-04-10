@@ -3,3 +3,14 @@
   become: yes
   roles:
     - kafka
+
+- hosts: producer
+  become: yes
+  roles:
+    - producer
+  
+- hosts: consumer
+  become: yes
+  roles:
+    - consumer
+
