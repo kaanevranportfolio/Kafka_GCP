@@ -1,7 +1,7 @@
 # Kafka Spark BigQuery NewsStream
 ==========================
 
-A real-time news processing pipeline using Apache Kafka, Apache Spark, and Google BigQuery.
+A real-time news processing pipeline (newsapi.org REST API) using Apache Kafka, Apache Spark, and Google BigQuery.
 
 ## Overview
 -----------
