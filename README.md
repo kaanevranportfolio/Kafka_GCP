@@ -1,13 +1,47 @@
-# Kafka_GCP
+# Kafka Spark BigQuery NewsStream
+==========================
 
-This projects deploys Apache Kafka on Google Cloud Platform (GCP) using Terraform for instance creation & provision, Ansible for Kafka & Zookeeper installation. Ansible files in the form of Terraform templates are rendered dynamically and provisioned to VMs. A new VPC is created, with a public subnet for control VM and a private subnet with a NAT Gateway for Kafka VM.
+A real-time news processing pipeline  [newsapi.org REST API](https://newsapi.org/) using Apache Kafka, Apache Spark, and Google BigQuery.
 
+## Overview
+-----------
+
+This project demonstrates a scalable and fault-tolerant architecture for processing news articles in real-time. The pipeline collects news articles from various sources, processes them using Apache Spark, and stores the results in Google BigQuery for analysis.
+
+## Architecture
+------------
+
+The pipeline consists of the following components:
+
+1. **Kafka**: Collects news articles from various sources and stores them in a Kafka topic.
+2. **Spark**: Processes the news articles collected from Kafka, performing tasks such as data cleaning, tokenization, and sentiment analysis.
+3. **BigQuery**: Stores the processed data for analysis and querying.
+
+
+## Requirements
+------------
+
+* **Kafka**: Apache Kafka 3.0 or later
+* **Spark**: Apache Spark 3.2 or later
+* **BigQuery**: Google BigQuery
+* **Python**: Python 3.8 or later
+* **Java**: Java 11 or later
+
+
+
+
+
+
+
+
+# Terraform and Ansible
+
+This projects deploys Apache Kafka on Google Cloud Platform (GCP) using Terraform for instance creation & provision, Ansible for Spark, Kafka & Zookeeper, Python, pip and modules installation. Ansible files in the form of Terraform templates are rendered dynamically and provisioned to VMs. A new VPC is created, with a public subnet for control VM and a private subnet with a NAT Gateway for Kafka VM, Python producer VM and Spark Consumer VM.
 
 ## Directory Structure
 
 - `Terraform_GCP/`: Contains .tf scripts for instance creation.
 - `ansible_files/`: Ansible files for Kafka & Zookeeper installation on VM.
-
 
 
 ## Getting Started
