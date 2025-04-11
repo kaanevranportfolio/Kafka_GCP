@@ -36,6 +36,15 @@ data "template_file" "producer_vars_main_yml" {
   }
 }
 
+data "template_file" "consumer_defaults_main_yml" {
+  template = file("../ansible_files/roles/consumer/defaults/main.yml.tpl")
+
+  vars = {
+    temp_bucket_name = google_storage_bucket.temp_bucket.name
+    kafka_server_private_ip = google_compute_instance.kafka_instance.network_interface.0.network_ip
+  }
+}
+
 
 resource "local_file" "ansible_all_yml" {
 
@@ -71,7 +80,22 @@ resource "local_file" "ansible_producer_defaults_main_yml" {
 
 resource "local_file" "ansible_producer_vars_main_yml" {
 
+  depends_on = [google_compute_instance.kafka_instance]
+
   content  = data.template_file.producer_vars_main_yml.rendered
   filename = "../ansible_files/roles/producer/vars/main.yml"
 
 }
+
+
+
+resource "local_file" "ansible_consumer_defaults_main_yml" {
+  depends_on = [
+    google_compute_instance.kafka_instance
+  ]
+
+  content  = data.template_file.consumer_defaults_main_yml.rendered
+  filename = "../ansible_files/roles/consumer/defaults/main.yml"
+}
+
+

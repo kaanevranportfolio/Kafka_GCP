@@ -47,12 +47,5 @@ generate_uuid = udf(lambda: str(uuid.uuid4()), StringType())
 json_df = json_df.withColumn("uuid", generate_uuid())
 
 
-query = json_df.writeStream \
-    .format("bigquery") \
-    .option("checkpointLocation", "/tmp/bq_checkpoint/") \  # Required for streaming
-    .option("temporaryGcsBucket", "{{ temp_bucket }}") \
-    .option("table", "{{ bq_dataset_id }}.{{ table_name }}") \
-    .option("createTable", "true") \
-    .outputMode("append") \
-    .start()
+query = json_df.writeStream.format("bigquery").option("checkpointLocation", "/tmp/bq_checkpoint/").option("temporaryGcsBucket", "{{ temp_bucket }}").option("table", "{{ bq_dataset_id }}.{{ table_name }}").option("createTable", "true").outputMode("append").start()
 

@@ -14,7 +14,7 @@ Environment="KAFKA_TOPIC={{ kafka_topic }}"
 Environment="TEMP_BUCKET={{ temp_bucket }}"
 Environment="BQ_DATASET_ID={{ bq_dataset_id }}"
 Environment="TABLE_NAME={{ table_name }}"
-ExecStart={{ spark_home }}/bin/spark-submit /path/to/your_script.py
+ExecStart={{ spark_home }}/bin/spark-submit {{ consumer_script_dest }}/consumer.py
 Restart=on-failure
 
 [Install]

@@ -16,7 +16,7 @@
 
 - name: Download Spark
   get_url:
-    url: "https://downloads.apache.org/spark/{{ spark_version }}/{{ spark_package }}.tgz"
+    url: "https://downloads.apache.org/spark/spark-{{ spark_version }}/{{ spark_package }}.tgz"
     dest: "/tmp/{{ spark_package }}.tgz"
 
 - name: Extract Spark
@@ -47,8 +47,10 @@
     line: 'export PATH=$PATH:{{ spark_home }}/bin:{{ spark_home }}/sbin'
     create: yes
 
-- name: Source Spark environment variables
-  shell: source /etc/profile.d/spark.sh
+- name: Source environment variables
+  shell: . /etc/profile.d/spark.sh
+  args:
+    executable: /bin/bash
   ignore_errors: yes
 
 - name: Ensure Python 3 and pip are installed
@@ -70,6 +72,18 @@
   pip:
     requirements: /home/{{ spark_user }}/requirements.txt
     executable: pip3
+
+- name: Create directory for consumer
+  file:
+    path: "{{ consumer_script_dest }}"
+    state: directory
+    mode: '0755'
+
+- name: Copy consumer script template
+  template:
+    src: consumer.py.j2
+    dest: "{{ consumer_script_dest }}/consumer.py"
+    mode: '0755'
 
 - name: Install Google Cloud BigQuery Connector for Spark
   get_url:
@@ -95,6 +109,16 @@
     name: pyspark-news-stream
     enabled: yes
     state: started
+
+- name: Check PySpark service status
+  systemd:
+    name: pyspark-news-stream
+    state: started
+  register: pyspark_service_status
+
+- name: Debug - Print PySpark service status
+  debug:
+    var: pyspark_service_status
 
 - name: Ensure cron job to restart PySpark service
   cron:
