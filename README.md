@@ -65,6 +65,19 @@ To deploy Kafka on GCP:
    ![Zookeeper](./pngs/zookeeper.png)
 
 
+## Resulting Table in BigQuery
+
+Python service writes the stream obtained from kafka to BigQuery.
+
+  ![Python](./pngs/success.png)
+
+The results can be viewed from BigQuery Console. As the time progresses, new entries are appended to the table.
+
+  ![BigQuery](./pngs/bq.png)
+
+
+
+
 
 ## License
 
