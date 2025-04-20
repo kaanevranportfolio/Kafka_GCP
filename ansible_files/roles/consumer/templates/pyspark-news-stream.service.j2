@@ -1,3 +1,4 @@
+# /etc/systemd/system/news-consumer.service
 [Unit]
 Description=PySpark News Stream Consumer
 After=network.target
@@ -6,16 +7,21 @@ After=network.target
 Type=simple
 User={{ spark_user }}
 Group={{ spark_group }}
-Environment="SPARK_HOME={{ spark_home }}"
-Environment="PYSPARK_PYTHON=python3"
-Environment="PYSPARK_DRIVER_PYTHON=python3"
-Environment="KAFKA_BROKER={{ kafka_broker }}"
-Environment="KAFKA_TOPIC={{ kafka_topic }}"
-Environment="TEMP_BUCKET={{ temp_bucket }}"
-Environment="BQ_DATASET_ID={{ bq_dataset_id }}"
-Environment="TABLE_NAME={{ table_name }}"
-ExecStart={{ spark_home }}/bin/spark-submit {{ consumer_script_dest }}/consumer.py
+WorkingDirectory={{ consumer_script_dest }}
+EnvironmentFile=/etc/environment
+
+# Pull in both the Kafka & BigQuery connectors and the locally‐downloaded GCS JAR
+ExecStart={{ spark_home }}/bin/spark-submit \
+  --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,com.google.cloud.spark:spark-3.5-bigquery:0.42.1 \
+  --jars /opt/spark/jars/gcs-connector-hadoop3-latest.jar \
+  {{ consumer_script_dest }}/consumer.py
+
+
+StandardOutput=append:/var/log/news-consumer.log
+StandardError=append:/var/log/news-consumer.err
+
 Restart=on-failure
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

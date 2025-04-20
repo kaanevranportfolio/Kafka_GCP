@@ -1,51 +1,84 @@
+# consumer.py
+import os
+import uuid
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col
-from pyspark.sql.types import *
+from pyspark.sql.functions import from_json, col, udf
+from pyspark.sql.types import StringType, StructType, StructField
 
+# Get environment variables
+kafka_broker   = os.environ.get("KAFKA_BROKER")
+kafka_topic    = os.environ.get("KAFKA_TOPIC")
+temp_bucket    = os.environ.get("TEMP_BUCKET")
+bq_dataset_id  = os.environ.get("BQ_DATASET_ID")
+table_name     = os.environ.get("TABLE_NAME")
+
+# Paths and packages
+GCS_JAR_PATH = "/opt/spark/jars/gcs-connector-hadoop3-latest.jar"
+PACKAGES = ",".join([
+    "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0",
+    "com.google.cloud.spark:spark-3.5-bigquery:0.42.1"
+])
+
+# Build Spark session, making sure both Kafka & BigQuery connectors and the GCS JAR are on the classpath
 spark = SparkSession.builder \
-    .appName("NewsStreamConsumer") \
+    .appName("KafkaToBigQuery") \
+    .config("spark.jars.packages", PACKAGES) \
+    .config("spark.jars", GCS_JAR_PATH) \
+    .config("spark.driver.extraClassPath", GCS_JAR_PATH) \
+    .config("spark.executor.extraClassPath", GCS_JAR_PATH) \
     .getOrCreate()
 
+# (Optional) If you need to explicitly set Hadoop FS impl for GCS, uncomment:
+# hadoop_conf = spark._jsc.hadoopConfiguration()
+# hadoop_conf.set("fs.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+# hadoop_conf.set("fs.AbstractFileSystem.gs.impl", "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS")
+
+# Define schema
 schema = StructType([
     StructField("source", StructType([
-        StructField("id", StringType()),
+        StructField("id",   StringType()),
         StructField("name", StringType())
     ])),
-    StructField("author", StringType()),
-    StructField("title", StringType()),
+    StructField("author",      StringType()),
+    StructField("title",       StringType()),
     StructField("description", StringType()),
     StructField("publishedAt", StringType())
 ])
 
+# Read from Kafka
 df = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "{{ kafka_broker }}") \
-    .option("subscribe", "{{ kafka_topic }}") \
+    .option("kafka.bootstrap.servers", kafka_broker) \
+    .option("subscribe", kafka_topic) \
+    .option("startingOffsets", "earliest") \
     .load()
 
+# Parse JSON payload
 json_df = df.selectExpr("CAST(value AS STRING) as json") \
     .select(from_json(col("json"), schema).alias("data")) \
     .select("data.*")
 
-'''
-query = json_df.writeStream \
-    .format("console") \
-    .outputMode("append") \
-    .start()
-
-query.awaitTermination()
-'''
-
-from pyspark.sql.functions import udf
-from pyspark.sql.types import StringType
-import uuid
-
-# Define a UDF to generate UUIDs
+# Add a UUID column
 generate_uuid = udf(lambda: str(uuid.uuid4()), StringType())
-
-# Apply the UDF to your DataFrame
 json_df = json_df.withColumn("uuid", generate_uuid())
 
+def write_batch_to_bq(batch_df, batch_id):
+    (batch_df
+      .write
+      .format("bigquery")
+      .option("table",             f"{bq_dataset_id}.{table_name}")
+      .option("temporaryGcsBucket", temp_bucket)
+      .mode("append")
+      .save()
+    )
 
-query = json_df.writeStream.format("bigquery").option("checkpointLocation", "/tmp/bq_checkpoint/").option("temporaryGcsBucket", "{{ temp_bucket }}").option("table", "{{ bq_dataset_id }}.{{ table_name }}").option("createTable", "true").outputMode("append").start()
 
+
+query = json_df.writeStream \
+    .outputMode("append") \
+    .option("checkpointLocation", f"gs://{temp_bucket}/bq_checkpoints/") \
+    .foreachBatch(write_batch_to_bq) \
+    .start()
+
+# Await termination
+query.awaitTermination()

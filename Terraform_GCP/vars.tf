@@ -21,6 +21,11 @@ variable "instance_type" {
   default = "e2-small"
 }
 
+variable "instance_type_spark" {
+  default = "e2-standard-2"
+}
+
+
 variable "instance_image" {
   type = map(string)
   default = {

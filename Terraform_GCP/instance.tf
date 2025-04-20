@@ -55,10 +55,10 @@ resource "google_compute_instance" "consumer_instance" {
 
   service_account {
     email  = google_service_account.bq_service_account.email
-    scopes = ["cloud-platform"]
+    scopes = ["https://www.googleapis.com/auth/bigquery", "https://www.googleapis.com/auth/devstorage.read_write"]
   }
 
-  machine_type = var.instance_type
+  machine_type = var.instance_type_spark
   zone         = var.zone
   tags         = ["ssh-access"]
 
