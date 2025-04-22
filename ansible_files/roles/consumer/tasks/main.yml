@@ -137,9 +137,9 @@
   debug:
     var: pyspark_service_status
 
-- name: Ensure cron job to restart PySpark service
-  cron:
-    name: "Restart PySpark News Stream Service"
-    user: root
-    job: "/bin/systemctl restart pyspark-news-stream"
-    minute: "*/30"  # Adjust the interval as needed
+# - name: Ensure cron job to restart PySpark service
+#   cron:
+#     name: "Restart PySpark News Stream Service"
+#     user: root
+#     job: "/bin/systemctl restart pyspark-news-stream"
+#     minute: "*/30"  # Adjust the interval as needed

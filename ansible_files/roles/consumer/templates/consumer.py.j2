@@ -92,9 +92,22 @@ def deduplicate_in_bigquery():
     query = f"""
     MERGE INTO `{bq_dataset_id}.{table_name}` T
     USING (
-        SELECT uuid, title, publishedAt, description, author, content, url, urlToImage, source, ingestion_time
-        FROM `{bq_dataset_id}.{table_name}_staging`
-        WHERE ROW_NUMBER() OVER (PARTITION BY uuid ORDER BY ingestion_time DESC) = 1
+        SELECT * FROM (
+            SELECT 
+                uuid, 
+                title, 
+                publishedAt, 
+                description, 
+                author, 
+                content, 
+                url, 
+                urlToImage, 
+                source, 
+                ingestion_time,
+                ROW_NUMBER() OVER (PARTITION BY uuid ORDER BY ingestion_time DESC) AS row_num
+            FROM `{bq_dataset_id}.{table_name}_staging`
+        )
+        WHERE row_num = 1
     ) S
     ON T.uuid = S.uuid
     WHEN MATCHED THEN
@@ -107,13 +120,11 @@ def deduplicate_in_bigquery():
             T.url = S.url,
             T.urlToImage = S.urlToImage,
             T.source = S.source,
-            T.ingestion_time = S.ingestion_time 
-
-
+            T.ingestion_time = S.ingestion_time
     WHEN NOT MATCHED THEN
-        INSERT (uuid, title, publishedAt, description, author, ingestion_time)
-        VALUES (S.uuid, S.title, S.publishedAt, S.description, S.author, S.ingestion_time)
-    """    
+        INSERT (uuid, title, publishedAt, description, author, content, url, urlToImage, source, ingestion_time)
+        VALUES (S.uuid, S.title, S.publishedAt, S.description, S.author, S.content, S.url, S.urlToImage, S.source, S.ingestion_time)
+    """
     
     # Run the deduplication query
     try:
