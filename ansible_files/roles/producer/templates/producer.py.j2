@@ -36,7 +36,7 @@ def stream_news():
         for article in articles:
             producer.send('{{ kafka_topic }}', article)
         print(f"✅ Sent {len(articles)} articles to Kafka topic 'news-stream'.")
-        time.sleep(600)  # Sleep for 10 minutes before fetching again
+        time.sleep(1800)  # Sleep for 30 minutes before fetching again
         
 if __name__ == '__main__':
     stream_news()
