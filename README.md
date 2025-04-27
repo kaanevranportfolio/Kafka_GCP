@@ -71,9 +71,9 @@ Python service writes the stream obtained from kafka to BigQuery.
 
   ![Python](./pngs/success.png)
 
-The results can be viewed from BigQuery Console. As the time progresses, new entries are appended to the table.
+The results can be viewed from BigQuery Console. As the time progresses, new entries are appended to the table. The resulting table after one week.
 
-  ![BigQuery](./pngs/bq.png)
+  ![BigQuery](./pngs/bq_2704.png)
 
 
 
